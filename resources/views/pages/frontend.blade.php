@@ -1,0 +1,1 @@
+@extends('admin::layouts.frontend_layout')
