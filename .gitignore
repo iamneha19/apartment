@@ -1,0 +1,15 @@
+/vendor
+/node_modules
+.env
+nbproject
+composer.lock
+.settings
+.buildpath
+.project
+_ide_helper.php
+public/wp-config.php
+/apartment_api/
+public/.htaccess
+tests/_output/*
+tests
+codeception.yml

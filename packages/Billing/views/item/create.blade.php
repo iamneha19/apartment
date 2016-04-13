@@ -1,0 +1,178 @@
+@extends('admin::layouts.admin_layout')
+@section('title','Add Bill Item')
+@section('panel_title','Add Bill Item')
+@section('head')
+<link href="{!! asset('css/bootstrap-datetimepicker.min.css') !!}" rel="stylesheet" type="text/css" />
+
+<link href="{!! asset('bower_components/select2/dist/css/select2.min.css') !!}" rel="stylesheet" type="text/css" />
+
+<link href="{!! asset('bower_components/bootstrap-multiselect/dist/css/bootstrap-multiselect.css') !!}" rel="stylesheet" type="text/css" />
+<script src="{!! asset('js/moment.js') !!}"></script>
+<script src="{!! asset('bower_components/select2/dist/js/select2.full.min.js') !!}"></script>
+<script src="{!! asset('bower_components/bootstrap-multiselect/dist/js/bootstrap-multiselect.js') !!}"></script>
+<script src="{!! asset('bower_components/bootstrap-multiselect/dist/js/bootstrap-multiselect-collapsible-groups.js') !!}"></script>
+<script src="{!! asset('js/bootstrap-datetimepicker.min.js') !!}"></script>
+
+<script type="text/javascript">
+    const society_id = "{!! session()->get('user.society_id') !!}";
+</script>
+<script>
+
+app.controller("billingController", function(URL,paginationServices,$scope,$http,$filter) {
+
+    $('#billing_form').submit(function(e) {
+        jQuery('.alert.alert-warning').addClass('hide');
+        e.preventDefault();
+        jQuery('input[name=society_id]').val(society_id);
+        if ($("#billing_form").valid()) {
+            var records = $.param($( this ).serializeArray());
+            var request_url = generateUrl('v1/billing/item');
+            $http({
+                url: request_url,
+                method: "POST",
+                data: records,
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+            }).then(function(response) {
+                if (response.data.status == "success") {
+        		  grit('',response.data.message);
+        		  $scope.form = {};
+                  window.location="<?php echo route('billing.item.index');  ?>"
+                } else {
+                   jQuery('.alert.alert-warning').text(response.data.message).removeClass('hide');
+                }
+            });
+        }
+    });
+
+    $scope.warningBox = function (status) {
+        if (status == 'hide') {
+            jQuery('.alert.alert-warning').addClass('hide');
+        } else {
+            jQuery('.alert.alert-warning').removeClass('hide');
+        }
+    }
+});
+
+</script>
+@stop
+@section('content')
+<div class="col-md-12" ng-controller="billingController">
+
+    <div class="alert alert-warning hide">
+    </div>
+
+    <form name="billing_form"  id="billing_form" class="form-horizontal"  novalidate>
+        <input  name="parent_entity"  ng-model="form.parent_entity" type="hidden" value="billing" />
+        <input  name="society_id"  ng-model="form.society_id" type="hidden" value="" />
+        <div class="form-group">
+            <label class="control-label col-sm-2 form-label" for="item_name" >Item Name</label>
+            <div class="col-sm-5">
+                <input type="text" name="item_name" class="form-control" ng-click="warningBox('hide')" ng-model="form.item_name" id="item-name" v-model="itemName" required ng-minlength="2" placeholder="Enter Name">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="Buildings">Building's</label>
+            <div class="col-sm-5">
+                <select class="col-sm-12" name="buildings[]" multiple="multiple" ng-model="form.buildings" name="billing-item-buildings" id="billing-item-buildings" placeholder="">
+                    <option disabled>Select Buildings</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="flats">Flat's</label>
+            <div class="col-sm-5">
+                <select class="col-sm-12" name="flats[]" multiple="multiple" ng-model="form.flats" id="billing-item-flats">
+                    <option disabled>Select Flats</option>
+                </select>
+            </div>
+        </div>
+
+      <!-- <div class="form-group">
+          <label class="control-label col-sm-2" for="flat_category">Occupancy</label>
+          <div class="col-sm-5">
+              <select class="form-control" name="flat_category"  ng-model="form.flat_category">
+                  <option value="">--Select Occupancy--</option>
+                  <option value="tenant">Tenant</option>
+                  <option value="owner">Owner</option>
+              </select>
+          </div>
+      </div> -->
+
+      <div class="form-group">
+          <label class="control-label col-sm-2" for="flat_type">Flat Type</label>
+          <div class="col-sm-5">
+              <select class="form-control" name="flat_type"  ng-model="form.flat_type">
+                <option value="">--Select Flat Type--</option>
+                <option value="office">Office</option>
+                <option value="shop">Shop</option>
+                <option value="flat">Flat</option>
+              </select>
+          </div>
+      </div>
+
+        <div class="form-group">
+          <label class="control-label col-sm-2 form-label" for="fixed_billing_item">Fixed Billing Item</label>
+          <div class="col-sm-5">
+              <select class="form-control" ng-model="form.fixed_billing_item" name="fixed_billing_item" required>
+                    <option value="">--Select Fixed billing item--</option>
+                  <option value="YES">Yes</option>
+                  <option value="NO">No</option>
+              </select>
+          </div>
+        </div>
+
+        <div class="form-group" ng-hide="form.fixed_billing_item !== 'NO'">
+          <label class="control-label col-sm-2 form-label" for="month">For the month of</label>
+          <div class="col-sm-5">
+              <input type="text" class="form-control" name="month" ng-model="form.month"
+              id="billing-item-start-date"
+              placeholder="For the month of"
+              ng-required="form.fixed_billing_item == 'NO'">
+          </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-sm-2 form-label" for="charge">Charge</label>
+            <div class="col-sm-5">
+              <input type="text" class="form-control" name="charge" ng-model="form.charge" id="charge" placeholder="Charge">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-5">
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="button" id="cancel" class="btn btn-primary">Cancel</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+<script>
+$("#billing_form").validate({
+	ignore: [],
+	rules: {
+	  charge : {
+			required:true,
+			number: true,
+		 },
+		month: {
+		   required: function() {
+               return jQuery('[name=fixed_billing_item]').val() === 'NO';
+           },
+		},
+		fixed_billing_item: {
+		   required:true,
+		} ,
+
+	}
+});
+ $('#cancel').click(function() {
+             window.location="<?php echo route('billing.item.index');  ?>"
+        });
+</script>
+@stop
+
+@section('footerCSSAndJS')
+    <script src="{!! asset('js/main.js') !!}"></script>
+@stop
